@@ -21,7 +21,7 @@ let Brightrookmove = 0; let Bleftrookmove = 0;
 let value = "*";
 let kingavailablemoves = [];
 let passant; let pawnid; let pawnrow; let pawncolumn; 
-let promotiondiv = document.querySelector('.promotiondiv');
+let promotiondiv = document.querySelector('.promotiondiv'); let promo = false;
 let divs = document.querySelectorAll('.divs');
 let whiteMins = document.getElementById("whitemins"); let whiteSecs = document.getElementById("whitesecs");
 let blackMins = document.getElementById("blackmins"); let blackSecs = document.getElementById("blacksecs");
@@ -202,11 +202,12 @@ function capture(target){
                 insertimages();
                 capturesound.play();
                 coloring();
-                turn = "B";
-                turntxt.innerText = "Black's Turn";
-                turntxt.style.color = "black";
-                wStartTime=[whiteMins.innerText,whiteSecs.innerText]
-                
+                if(promo!=true){
+                    turn = "B";
+                    turntxt.innerText = "Black's Turn";
+                    turntxt.style.color = "black";
+                    wStartTime=[whiteMins.innerText,whiteSecs.innerText]
+                }
             }
             else if(target.textContent.includes("W") && turn == "B"){
                 if(i.innerText=="Bking"){
@@ -238,10 +239,12 @@ function capture(target){
                 insertimages();
                 capturesound.play();
                 coloring();
-                turn = "W";
-                turntxt.innerText = "White's Turn";
-                turntxt.style.color = "White";
-                bStartTime=[blackMins.innerText,blackSecs.innerText]
+                if(promo!=true){
+                    turn = "W";
+                    turntxt.innerText = "White's Turn";
+                    turntxt.style.color = "White";
+                    bStartTime=[blackMins.innerText,blackSecs.innerText]
+                }
             }
         }
     }
@@ -321,10 +324,12 @@ function move(newplace){
                 insertimages();
                 movesound.play();
                 coloring();
-                turn = "B";
-                turntxt.innerText = "Black's Turn";
-                turntxt.style.color = "black";
-                wStartTime=[whiteMins.innerText,whiteSecs.innerText]
+                if(promo!=true){
+                    turn = "B";
+                    turntxt.innerText = "Black's Turn";
+                    turntxt.style.color = "black";
+                    wStartTime=[whiteMins.innerText,whiteSecs.innerText]
+                } 
             }
             else if(box.textContent.includes("B")){
                 if(box.innerText=="Bking"){
@@ -391,10 +396,12 @@ function move(newplace){
                 insertimages();
                 movesound.play();
                 coloring();
-                turn = "W";
-                turntxt.innerText = "White's Turn";
-                turntxt.style.color = "White";
-                bStartTime=[blackMins.innerText,blackSecs.innerText]
+                if(promo!=true){
+                    turn = "W";
+                    turntxt.innerText = "White's Turn";
+                    turntxt.style.color = "White";
+                    bStartTime=[blackMins.innerText,blackSecs.innerText]
+                }
             }
         }
     }
@@ -405,6 +412,7 @@ function move(newplace){
 movebackbtn.addEventListener("click", function(){
     if(moves.length !== 0){
     if(moves[moves.length-1].length == 3){
+        if(promo!=true){
         let caparray = moves.pop();
         let capturedpiece = caparray.shift();
         let attackingpiece = caparray.shift();
@@ -453,8 +461,10 @@ movebackbtn.addEventListener("click", function(){
             whiteMins.innerText=wStartTime[0] 
             whiteSecs.innerText=wStartTime[1]
         }
+        }
     }
     else if(moves[moves.length-1].length == 2){
+        if(promo!=true){
         let movarray = moves.pop();
         let oldplace = movarray.shift();
         let lastplace = movarray.shift(); 
@@ -500,6 +510,7 @@ movebackbtn.addEventListener("click", function(){
             }
             whiteMins.innerText=wStartTime[0] 
             whiteSecs.innerText=wStartTime[1]
+        }
         }
     }
     else if(moves[moves.length-1].length == 4){
@@ -2751,6 +2762,7 @@ function showmoves(piecerow, piececolumn){
 // pawn promotion function
 
 function promotion(box){
+    promo = true;
     if(box.id.includes("8_")){
         for(let div of divs){
             if(div.textContent.includes("B")){
@@ -2764,6 +2776,11 @@ function promotion(box){
                     promotiondiv.classList.add("displaynone");
                     insertimages();
                     checkmate();
+                    turn = "B";
+                    turntxt.innerText = "Black's Turn";
+                    turntxt.style.color = "black";
+                    wStartTime=[whiteMins.innerText,whiteSecs.innerText]
+                    promo = false;
                 }
             })
         }
@@ -2781,6 +2798,11 @@ function promotion(box){
                     promotiondiv.classList.add("displaynone");
                     insertimages();
                     checkmate();
+                    turn = "W";
+                    turntxt.innerText = "White's Turn";
+                    turntxt.style.color = "white";
+                    bStartTime=[blackMins.innerText,blackSecs.innerText]
+                    promo =false;
                 }
             })
         }
