@@ -26,7 +26,7 @@ let divs = document.querySelectorAll('.divs');
 let whiteMins = document.getElementById("whitemins"); let whiteSecs = document.getElementById("whitesecs");
 let blackMins = document.getElementById("blackmins"); let blackSecs = document.getElementById("blacksecs");
 let bStartTime; let wStartTime; let timeBoxes=document.querySelectorAll('.timebox'); let choosetimebox=document.getElementById('choosetime');
-let lowtimesound = new Audio(src="LowTime.mp3"); let timeoutsound = new Audio(src="GenericNotify.mp3");
+let lowtimesound = new Audio(src="LowTime.mp3"); let victorySound = new Audio(src="GenericNotify.mp3");
 let rightsidesection = document.querySelector('.rightsidesection');
 
 // images inserting function
@@ -86,14 +86,12 @@ for(let box of boxes){
         if(box.innerText.length !== 0 && turn == "W"){
             
                 if(box.textContent.includes(turn)&&box.style.backgroundColor!=="cadetblue"&&box.style.backgroundColor!=="red"&&box.style.backgroundColor!=="darkred"){
-                    dragdrop(); 
                     coloring();
                     box.style.backgroundColor="cadetblue";
                     availablemoves(boxrow,boxcolumn);
                     showmoves(boxrow,boxcolumn);
                 }
                 else if(box.textContent.includes(turn) && box.style.backgroundColor=="red"){
-                    dragdrop();
                     coloring();
                     availablemoves(boxrow,boxcolumn);
                     showmoves(boxrow,boxcolumn);
@@ -105,7 +103,6 @@ for(let box of boxes){
                 //capturing
                 else if(box.textContent.includes("B") && box.style.backgroundColor=="lightseagreen"){
                     capture(box);
-                    checkmate();
                 }
                 else if(box.style.backgroundColor=="cadetblue" || box.style.backgroundColor=="darkred"){
                     if(dragged==true){
@@ -113,20 +110,19 @@ for(let box of boxes){
                     }
                     else{coloring();}
                 }
+                if(turntxt.innerText == "Draw game!"){coloring();}
             
         }
         // selection
         else if(box.innerText !== "" && turn == "B"){
             
                 if(box.textContent.includes(turn)&&box.style.backgroundColor!=="cadetblue"&&box.style.backgroundColor!=="red"&&box.style.backgroundColor!=="darkred"){
-                    dragdrop();
                     coloring();
                     box.style.backgroundColor="cadetblue";
                     availablemoves(boxrow,boxcolumn);
                     showmoves(boxrow,boxcolumn);
                 }
                 else if(box.textContent.includes(turn) && box.style.backgroundColor=="red"){
-                    dragdrop();
                     coloring();
                     availablemoves(boxrow,boxcolumn);
                     showmoves(boxrow,boxcolumn);
@@ -138,7 +134,6 @@ for(let box of boxes){
                 //capturing
                 else if(box.textContent.includes("W") && box.style.backgroundColor=="lightseagreen"){
                     capture(box);
-                    checkmate();
                 }
                 else if(box.style.backgroundColor=="cadetblue" || box.style.backgroundColor=="darkred"){
                     if(dragged==true){
@@ -146,6 +141,7 @@ for(let box of boxes){
                     }
                     else{coloring();}
                 }
+                if(turntxt.innerText == "Draw game!"){coloring();}
             
         }
         // moving code
@@ -153,7 +149,6 @@ for(let box of boxes){
             
                 if(box.style.backgroundColor=="lightseagreen"){
                     move(box);
-                    checkmate();
                 }
                 else if(box.style.backgroundColor!=="lightseagreen"){
                     coloring();
@@ -194,14 +189,6 @@ function capture(target){
                         break;
                     }
                 };
-                capturearray.push(i);
-                target.innerText = i.innerText;
-                capturearray.push(target);
-                moves.push(capturearray);
-                i.innerText = "";
-                insertimages();
-                capturesound.play();
-                coloring();
                 if(promo!=true){
                     turn = "B";
                     turntxt.innerText = "Black's Turn";
@@ -231,14 +218,6 @@ function capture(target){
                         break;
                     }
                 };
-                capturearray.push(i);
-                target.innerText = i.innerText;
-                capturearray.push(target);
-                moves.push(capturearray);
-                i.innerText = "";
-                insertimages();
-                capturesound.play();
-                coloring();
                 if(promo!=true){
                     turn = "W";
                     turntxt.innerText = "White's Turn";
@@ -246,8 +225,20 @@ function capture(target){
                     bStartTime=[blackMins.innerText,blackSecs.innerText]
                 }
             }
+            capturearray.push(i);
+            target.innerText = i.innerText;
+            capturearray.push(target);
+            moves.push(capturearray);
+            if(i.innerText.includes("king")){
+                checkDraw();
+            }
+            i.innerText = "";
+            capturesound.play();
         }
     }
+    insertimages();
+    coloring();
+    checkWinner();
 };
 
 //moving function
@@ -321,9 +312,7 @@ function move(newplace){
                 }
                 newplace.innerText=box.innerText;
                 box.innerText="";
-                insertimages();
                 movesound.play();
-                coloring();
                 if(promo!=true){
                     turn = "B";
                     turntxt.innerText = "Black's Turn";
@@ -393,9 +382,7 @@ function move(newplace){
                 }
                 newplace.innerText=box.innerText;
                 box.innerText="";
-                insertimages();
                 movesound.play();
-                coloring();
                 if(promo!=true){
                     turn = "W";
                     turntxt.innerText = "White's Turn";
@@ -405,6 +392,9 @@ function move(newplace){
             }
         }
     }
+    insertimages();
+    coloring();
+    checkWinner();
 };
 
 // back moves btn function
@@ -550,6 +540,12 @@ movebackbtn.addEventListener("click", function(){
         }
     }
     checkmate();
+    if(win==1 ||turntxt.style.fontWeight=="900"){
+        win = 0;
+        timer = setInterval(pTimer,1000);
+        turntxt.style.fontWeight="unset";
+        turntxt.style.webkitTextStroke="unset";
+    }
     } 
 });
 
@@ -709,7 +705,7 @@ function checkmate(kingmoveboxrow, kingmoveboxcolumn){
             }
             if(box.style.backgroundColor=="red" && checkmatedirection == "upright"){
                 availablemove=[];
-                for(let i=1 ; i<=8-kingcolumn ; i++){
+                for(let i=1 ; i<=8 ; i++){
                     if(document.getElementById(kingrow+i+"_"+(kingcolumn+i))!==null){
                         if(document.getElementById(kingrow+i+"_"+(kingcolumn+i)).innerText=="" || 
                         document.getElementById(kingrow+i+"_"+(kingcolumn+i)).textContent.includes("W")){
@@ -738,7 +734,7 @@ function checkmate(kingmoveboxrow, kingmoveboxcolumn){
             }
             if(box.style.backgroundColor=="red" && checkmatedirection == "downleft"){
                 availablemove=[];
-                for(let i=1 ; i<=8-kingcolumn ; i++){
+                for(let i=1 ; i<=8 ; i++){
                     if(document.getElementById(kingrow-i+"_"+(kingcolumn-i))!==null){
                         if(document.getElementById(kingrow-i+"_"+(kingcolumn-i)).innerText=="" || 
                         document.getElementById(kingrow-i+"_"+(kingcolumn-i)).textContent.includes("W")){
@@ -767,7 +763,7 @@ function checkmate(kingmoveboxrow, kingmoveboxcolumn){
             }
             if(box.style.backgroundColor=="red" && checkmatedirection == "upleft"){
                 availablemove=[];
-                for(let i=1 ; i<=8-kingcolumn ; i++){
+                for(let i=1 ; i<=8 ; i++){
                     if(document.getElementById(kingrow+i+"_"+(kingcolumn-i))!==null){
                         if(document.getElementById(kingrow+i+"_"+(kingcolumn-i)).innerText=="" || 
                         document.getElementById(kingrow+i+"_"+(kingcolumn-i)).textContent.includes("W")){
@@ -796,7 +792,7 @@ function checkmate(kingmoveboxrow, kingmoveboxcolumn){
             };
             if(box.style.backgroundColor=="red" && checkmatedirection == "downright"){
                 availablemove=[];
-                for(let i=1 ; i<=8-kingcolumn ; i++){
+                for(let i=1 ; i<=8 ; i++){
                     if(document.getElementById(kingrow-i+"_"+(kingcolumn+i))!==null){
                         if(document.getElementById(kingrow-i+"_"+(kingcolumn+i)).innerText=="" || 
                         document.getElementById(kingrow-i+"_"+(kingcolumn+i)).textContent.includes("W")){
@@ -1081,7 +1077,7 @@ function checkmate(kingmoveboxrow, kingmoveboxcolumn){
             }
             if(box.style.backgroundColor=="red" && checkmatedirection == "upright"){
                 availablemove=[];
-                for(let i=1 ; i<=8-kingcolumn ; i++){
+                for(let i=1 ; i<=8 ; i++){
                     if(document.getElementById(kingrow+i+"_"+(kingcolumn+i))!==null){
                         if(document.getElementById(kingrow+i+"_"+(kingcolumn+i)).innerText=="" || 
                         document.getElementById(kingrow+i+"_"+(kingcolumn+i)).textContent.includes("B")){
@@ -1110,7 +1106,7 @@ function checkmate(kingmoveboxrow, kingmoveboxcolumn){
             }
             if(box.style.backgroundColor=="red" && checkmatedirection == "downleft"){
                 availablemove=[];
-                for(let i=1 ; i<=8-kingcolumn ; i++){
+                for(let i=1 ; i<=8 ; i++){
                     if(document.getElementById(kingrow-i+"_"+(kingcolumn-i))!==null){
                         if(document.getElementById(kingrow-i+"_"+(kingcolumn-i)).innerText=="" || 
                         document.getElementById(kingrow-i+"_"+(kingcolumn-i)).textContent.includes("B")){
@@ -1139,7 +1135,7 @@ function checkmate(kingmoveboxrow, kingmoveboxcolumn){
             }
             if(box.style.backgroundColor=="red" && checkmatedirection == "upleft"){
                 availablemove=[];
-                for(let i=1 ; i<=8-kingcolumn ; i++){
+                for(let i=1 ; i<=8 ; i++){
                     if(document.getElementById(kingrow+i+"_"+(kingcolumn-i))!==null){
                         if(document.getElementById(kingrow+i+"_"+(kingcolumn-i)).innerText=="" || 
                         document.getElementById(kingrow+i+"_"+(kingcolumn-i)).textContent.includes("B")){
@@ -1168,7 +1164,7 @@ function checkmate(kingmoveboxrow, kingmoveboxcolumn){
             };
             if(box.style.backgroundColor=="red" && checkmatedirection == "downright"){
                 availablemove=[];
-                for(let i=1 ; i<=8-kingcolumn ; i++){
+                for(let i=1 ; i<=8 ; i++){
                     if(document.getElementById(kingrow-i+"_"+(kingcolumn+i))!==null){
                         if(document.getElementById(kingrow-i+"_"+(kingcolumn+i)).innerText=="" || 
                         document.getElementById(kingrow-i+"_"+(kingcolumn+i)).textContent.includes("B")){
@@ -2213,10 +2209,10 @@ function availablemoves(piecerow,piececolumn){
         if(document.getElementById(piecerow+"_"+piececolumn).innerText==turn+"king"){
             if(document.getElementById(piecerow+1+"_"+(piececolumn+1))!==null){
                 if(checkmate(piecerow+1,piececolumn+1)!==true){
-                    if(checkmate()!==true ||checkmate()==true && checkmatedirection!=="upright"&& checkmatedirection!=="downleft"){
+                    if(checkmate()!==true ||checkvalue==true && checkmatedirection!=="upright"&& checkmatedirection!=="downleft"){
                         kingavailablemoves.push(document.getElementById(piecerow+1+"_"+(piececolumn+1)));
                     }
-                    if(checkmate()==true && document.getElementById(piecerow+1+"_"+(piececolumn+1)).innerText!==""){
+                    if(checkvalue==true && document.getElementById(piecerow+1+"_"+(piececolumn+1)).innerText!==""){
                         kingavailablemoves.push(document.getElementById(piecerow+1+"_"+(piececolumn+1)));
                     } 
                 }
@@ -2227,10 +2223,10 @@ function availablemoves(piecerow,piececolumn){
         if(document.getElementById(piecerow+"_"+piececolumn).innerText==turn+"king"){
             if(document.getElementById(piecerow-1+"_"+(piececolumn-1))!==null){
                 if(checkmate(piecerow-1,piececolumn-1)!==true){
-                    if(checkmate()!==true ||checkmate()==true && checkmatedirection!=="upright"&& checkmatedirection!=="downleft"){
+                    if(checkmate()!==true ||checkvalue==true && checkmatedirection!=="upright"&& checkmatedirection!=="downleft"){
                         kingavailablemoves.push(document.getElementById(piecerow-1+"_"+(piececolumn-1)));
                     }
-                    if(checkmate()==true && document.getElementById(piecerow-1+"_"+(piececolumn-1)).innerText!==""){
+                    if(checkvalue==true && document.getElementById(piecerow-1+"_"+(piececolumn-1)).innerText!==""){
                         kingavailablemoves.push(document.getElementById(piecerow-1+"_"+(piececolumn-1)));
                     }
                 }
@@ -2241,10 +2237,10 @@ function availablemoves(piecerow,piececolumn){
         if(document.getElementById(piecerow+"_"+piececolumn).innerText==turn+"king"){
             if(document.getElementById(piecerow+1+"_"+(piececolumn-1))!==null){
                 if(checkmate(piecerow+1,piececolumn-1)!==true){
-                    if(checkmate()!==true ||checkmate()==true && checkmatedirection!=="upleft"&& checkmatedirection!=="downright"){
+                    if(checkmate()!==true ||checkvalue==true && checkmatedirection!=="upleft"&& checkmatedirection!=="downright"){
                         kingavailablemoves.push(document.getElementById(piecerow+1+"_"+(piececolumn-1)));
                     }
-                    if(checkmate()==true && document.getElementById(piecerow+1+"_"+(piececolumn-1)).innerText!==""){
+                    if(checkvalue==true && document.getElementById(piecerow+1+"_"+(piececolumn-1)).innerText!==""){
                         kingavailablemoves.push(document.getElementById(piecerow+1+"_"+(piececolumn-1)));
                     }
                 }
@@ -2255,10 +2251,10 @@ function availablemoves(piecerow,piececolumn){
         if(document.getElementById(piecerow+"_"+piececolumn).innerText==turn+"king"){
             if(document.getElementById(piecerow-1+"_"+(piececolumn+1))!==null){
                 if(checkmate(piecerow-1,piececolumn+1)!==true){
-                    if(checkmate()!==true ||checkmate()==true && checkmatedirection!=="upleft"&& checkmatedirection!=="downright"){
+                    if(checkmate()!==true ||checkvalue==true && checkmatedirection!=="upleft"&& checkmatedirection!=="downright"){
                         kingavailablemoves.push(document.getElementById(piecerow-1+"_"+(piececolumn+1)));
                     }
-                    if(checkmate()==true && document.getElementById(piecerow-1+"_"+(piececolumn+1)).innerText!==""){
+                    if(checkvalue==true && document.getElementById(piecerow-1+"_"+(piececolumn+1)).innerText!==""){
                         kingavailablemoves.push(document.getElementById(piecerow-1+"_"+(piececolumn+1)));
                     }
                 }
@@ -2269,10 +2265,10 @@ function availablemoves(piecerow,piececolumn){
         if(document.getElementById(piecerow+"_"+piececolumn).innerText==turn+"king"){
             if(document.getElementById(piecerow+1+"_"+(piececolumn))!==null){
                 if(checkmate(piecerow+1,piececolumn)!==true){
-                    if(checkmate()!==true ||checkmate()==true && checkmatedirection!=="up"&& checkmatedirection!=="down"){
+                    if(checkmate()!==true ||checkvalue==true && checkmatedirection!=="up"&& checkmatedirection!=="down"){
                         kingavailablemoves.push(document.getElementById(piecerow+1+"_"+(piececolumn)));
                     }
-                    if(checkmate()==true && document.getElementById(piecerow+1+"_"+(piececolumn)).innerText!==""){
+                    if(checkvalue==true && document.getElementById(piecerow+1+"_"+(piececolumn)).innerText!==""){
                         kingavailablemoves.push(document.getElementById(piecerow+1+"_"+(piececolumn)));
                     }
                 }
@@ -2283,10 +2279,10 @@ function availablemoves(piecerow,piececolumn){
         if(document.getElementById(piecerow+"_"+piececolumn).innerText==turn+"king"){
             if(document.getElementById(piecerow+"_"+(piececolumn+1))!==null){
                 if(checkmate(piecerow,piececolumn+1)!==true){
-                    if(checkmate()!==true ||checkmate()==true && checkmatedirection!=="right"&& checkmatedirection!=="left"){
+                    if(checkmate()!==true ||checkvalue==true && checkmatedirection!=="right"&& checkmatedirection!=="left"){
                         kingavailablemoves.push(document.getElementById(piecerow+"_"+(piececolumn+1)));
                     }
-                    if(checkmate()==true && document.getElementById(piecerow+"_"+(piececolumn+1)).innerText!==""){
+                    if(checkvalue==true && document.getElementById(piecerow+"_"+(piececolumn+1)).innerText!==""){
                         kingavailablemoves.push(document.getElementById(piecerow+"_"+(piececolumn+1)));
                     }
                 }
@@ -2297,10 +2293,10 @@ function availablemoves(piecerow,piececolumn){
         if(document.getElementById(piecerow+"_"+piececolumn).innerText==turn+"king"){
             if(document.getElementById(piecerow-1+"_"+(piececolumn))!==null){
                 if(checkmate(piecerow-1,piececolumn)!==true){
-                    if(checkmate()!==true ||checkmate()==true && checkmatedirection!=="down"&& checkmatedirection!=="up"){
+                    if(checkmate()!==true ||checkvalue==true && checkmatedirection!=="down"&& checkmatedirection!=="up"){
                         kingavailablemoves.push(document.getElementById(piecerow-1+"_"+(piececolumn)));
                     }
-                    if(checkmate()==true && document.getElementById(piecerow-1+"_"+(piececolumn)).innerText!==""){
+                    if(checkvalue==true && document.getElementById(piecerow-1+"_"+(piececolumn)).innerText!==""){
                         kingavailablemoves.push(document.getElementById(piecerow-1+"_"+(piececolumn)));
                     }
                 }
@@ -2311,10 +2307,10 @@ function availablemoves(piecerow,piececolumn){
         if(document.getElementById(piecerow+"_"+piececolumn).innerText==turn+"king"){
             if(document.getElementById(piecerow+"_"+(piececolumn-1))!==null){
                 if(checkmate(piecerow,piececolumn-1)!==true){
-                    if(checkmate()!==true ||checkmate()==true && checkmatedirection!=="left"&& checkmatedirection!=="right"){
+                    if(checkmate()!==true ||checkvalue==true && checkmatedirection!=="left"&& checkmatedirection!=="right"){
                         kingavailablemoves.push(document.getElementById(piecerow+"_"+(piececolumn-1)));
                     }
-                    if(checkmate()==true && document.getElementById(piecerow+"_"+(piececolumn-1)).innerText!==""){
+                    if(checkvalue==true && document.getElementById(piecerow+"_"+(piececolumn-1)).innerText!==""){
                         kingavailablemoves.push(document.getElementById(piecerow+"_"+(piececolumn-1)));
                     }
                 }
@@ -2339,26 +2335,26 @@ function showmoves(piecerow, piececolumn){
             else{element.style.backgroundColor="lightseagreen";}
         }); // castling
         if(turn == "W" && Wkingmove == 0 && Wrightrookmove ==0 && document.getElementById("1_6").innerText==""&&
-        document.getElementById("1_7").innerText==""&& checkmate()!==true&&checkmate(1,6)!==true&&checkmate(1,7)!==true&&document.getElementById("1_8").innerText=="Wrook"){
+        document.getElementById("1_7").innerText==""&& checkvalue!==true&&checkmate(1,6)!==true&&checkmate(1,7)!==true&&document.getElementById("1_8").innerText=="Wrook"){
             document.getElementById("1_7").style.backgroundColor="lightseagreen";
         }
         if(turn == "W" && Wkingmove == 0 && Wleftrookmove ==0 && document.getElementById("1_2").innerText==""&&
-        document.getElementById("1_3").innerText==""&& document.getElementById("1_4").innerText==""&&checkmate()!==true&&
+        document.getElementById("1_3").innerText==""&& document.getElementById("1_4").innerText==""&&checkvalue!==true&&
         checkmate(1,2)!==true&&checkmate(1,3)!==true&&checkmate(1,4)!==true&&document.getElementById("1_1").innerText=="Wrook"){
             document.getElementById("1_3").style.backgroundColor="lightseagreen";
         }
         if(turn == "B" && Bkingmove == 0 && Brightrookmove ==0 && document.getElementById("8_6").innerText==""&&
-        document.getElementById("8_7").innerText==""&& checkmate()!==true&&checkmate(8,6)!==true&&checkmate(8,7)!==true&&document.getElementById("8_8").innerText=="Brook"){
+        document.getElementById("8_7").innerText==""&& checkvalue!==true&&checkmate(8,6)!==true&&checkmate(8,7)!==true&&document.getElementById("8_8").innerText=="Brook"){
             document.getElementById("8_7").style.backgroundColor="lightseagreen";
         }
         if(turn == "B" && Bkingmove == 0 && Bleftrookmove ==0 && document.getElementById("8_2").innerText==""&&
-        document.getElementById("8_3").innerText==""&& document.getElementById("8_4").innerText==""&&checkmate()!==true&&
+        document.getElementById("8_3").innerText==""&& document.getElementById("8_4").innerText==""&&checkvalue!==true&&
         checkmate(8,2)!==true&&checkmate(8,3)!==true&&checkmate(8,4)!==true&&document.getElementById("8_1").innerText=="Brook"){
             document.getElementById("8_3").style.backgroundColor="lightseagreen";
         }
     }// white pawn
     if(piece.innerText=="Wpawn"){
-        if(checkmate()==true && value == "*"){
+        if(checkvalue==true && value == "*"){
             if(document.getElementById(piecerow+1+"_"+piececolumn)!==null){
                 if(availablemove.includes(document.getElementById(piecerow+1+"_"+piececolumn))&&document.getElementById(piecerow+1+"_"+piececolumn).innerText==""){
                     document.getElementById(piecerow+1+"_"+piececolumn).style.backgroundColor="lightseagreen";
@@ -2381,7 +2377,7 @@ function showmoves(piecerow, piececolumn){
                 }
             }
         }
-        if(checkmate()!==true && value == "*"){
+        if(checkvalue!==true && value == "*"){
             if(document.getElementById(piecerow+1+"_"+piececolumn).innerText==""){
                 document.getElementById(piecerow+1+"_"+piececolumn).style.backgroundColor="lightseagreen"; //move
             }
@@ -2399,7 +2395,7 @@ function showmoves(piecerow, piececolumn){
                 document.getElementById(piecerow+2+"_"+piececolumn).style.backgroundColor="lightseagreen";
             }           
         }
-        if(checkmate()!==true && value == "up"){
+        if(checkvalue!==true && value == "up"){
             if(document.getElementById(piecerow+1+"_"+piececolumn).innerText==""){
                 document.getElementById(piecerow+1+"_"+piececolumn).style.backgroundColor="lightseagreen";
             }
@@ -2409,31 +2405,31 @@ function showmoves(piecerow, piececolumn){
                 }
             }
         }
-        if(checkmate()!==true && value == "upright"){
+        if(checkvalue!==true && value == "upright"){
             if(document.getElementById(piecerow+1+"_"+(piececolumn+1)).textContent.includes("B")){
                 document.getElementById(piecerow+1+"_"+(piececolumn+1)).style.backgroundColor="lightseagreen";
             }
         }
-        if(checkmate()!==true && value == "upleft"){
+        if(checkvalue!==true && value == "upleft"){
             if(document.getElementById(piecerow+1+"_"+(piececolumn-1)).textContent.includes("B")){
                 document.getElementById(piecerow+1+"_"+(piececolumn-1)).style.backgroundColor="lightseagreen";
             }
         }// en passant rule
-        if(checkmate()==true&&piecerow==5&&piececolumn>1&&passant==1&&pawnid==piecerow+"_"+(piececolumn-1)&&availablemove.includes(document.getElementById(piecerow+1+"_"+(piececolumn-1)))){
+        if(checkvalue==true&&piecerow==5&&piececolumn>1&&passant==1&&pawnid==piecerow+"_"+(piececolumn-1)&&availablemove.includes(document.getElementById(piecerow+1+"_"+(piececolumn-1)))){
             document.getElementById(piecerow+1+"_"+(piececolumn-1)).style.backgroundColor="lightseagreen";
         }
-        if(checkmate()==true&&piecerow==5&&piececolumn<8&&passant==1&&pawnid==piecerow+"_"+(piececolumn+1)&&availablemove.includes(document.getElementById(piecerow+1+"_"+(piececolumn+1)))){
+        if(checkvalue==true&&piecerow==5&&piececolumn<8&&passant==1&&pawnid==piecerow+"_"+(piececolumn+1)&&availablemove.includes(document.getElementById(piecerow+1+"_"+(piececolumn+1)))){
             document.getElementById(piecerow+1+"_"+(piececolumn+1)).style.backgroundColor="lightseagreen";
         }
-        if(checkmate()!==true&&piecerow==5&&piececolumn>1&&passant==1&&pawnid==piecerow+"_"+(piececolumn-1)){
+        if(checkvalue!==true&&piecerow==5&&piececolumn>1&&passant==1&&pawnid==piecerow+"_"+(piececolumn-1)){
             document.getElementById(piecerow+1+"_"+(piececolumn-1)).style.backgroundColor="lightseagreen";
         }
-        if(checkmate()!==true&&piecerow==5&&piececolumn<8&&passant==1&&pawnid==piecerow+"_"+(piececolumn+1)){
+        if(checkvalue!==true&&piecerow==5&&piececolumn<8&&passant==1&&pawnid==piecerow+"_"+(piececolumn+1)){
             document.getElementById(piecerow+1+"_"+(piececolumn+1)).style.backgroundColor="lightseagreen";
         }
     }// black pawn
     if(piece.innerText=="Bpawn"){
-        if(checkmate()==true && value == "*"){
+        if(checkvalue==true && value == "*"){
             if(document.getElementById(piecerow-1+"_"+piececolumn)!==null){
                 if(availablemove.includes(document.getElementById(piecerow-1+"_"+piececolumn))&&document.getElementById(piecerow-1+"_"+piececolumn).innerText==""){
                     document.getElementById(piecerow-1+"_"+piececolumn).style.backgroundColor="lightseagreen";
@@ -2456,7 +2452,7 @@ function showmoves(piecerow, piececolumn){
                 }
             }
         }
-        if(checkmate()!==true && value == "*"){
+        if(checkvalue!==true && value == "*"){
             if(document.getElementById(piecerow-1+"_"+piececolumn).innerText==""){
                 document.getElementById(piecerow-1+"_"+piececolumn).style.backgroundColor="lightseagreen"; //move
             }
@@ -2474,7 +2470,7 @@ function showmoves(piecerow, piececolumn){
                 document.getElementById(piecerow-2+"_"+piececolumn).style.backgroundColor="lightseagreen";
             }           
         }
-        if(checkmate()!==true && value == "down"){
+        if(checkvalue!==true && value == "down"){
             if(document.getElementById(piecerow-1+"_"+piececolumn).innerText==""){
                 document.getElementById(piecerow-1+"_"+piececolumn).style.backgroundColor="lightseagreen";
             }
@@ -2484,31 +2480,31 @@ function showmoves(piecerow, piececolumn){
                 }
             }
         }
-        if(checkmate()!==true && value == "downright"){
+        if(checkvalue!==true && value == "downright"){
             if(document.getElementById(piecerow-1+"_"+(piececolumn+1)).textContent.includes("W")){
                 document.getElementById(piecerow-1+"_"+(piececolumn+1)).style.backgroundColor="lightseagreen";
             }
         }
-        if(checkmate()!==true && value == "downleft"){
+        if(checkvalue!==true && value == "downleft"){
             if(document.getElementById(piecerow-1+"_"+(piececolumn-1)).textContent.includes("W")){
                 document.getElementById(piecerow-1+"_"+(piececolumn-1)).style.backgroundColor="lightseagreen";
             }
         }// en passant rule
-        if(checkmate()==true&&piecerow==4&&piececolumn>1&&passant==1&&pawnid==piecerow+"_"+(piececolumn-1)&&availablemove.includes(document.getElementById(piecerow-1+"_"+(piececolumn-1)))){
+        if(checkvalue==true&&piecerow==4&&piececolumn>1&&passant==1&&pawnid==piecerow+"_"+(piececolumn-1)&&availablemove.includes(document.getElementById(piecerow-1+"_"+(piececolumn-1)))){
             document.getElementById(piecerow-1+"_"+(piececolumn-1)).style.backgroundColor="lightseagreen";
         }
-        if(checkmate()==true&&piecerow==4&&piececolumn<8&&passant==1&&pawnid==piecerow+"_"+(piececolumn+1)&&availablemove.includes(document.getElementById(piecerow-1+"_"+(piececolumn+1)))){
+        if(checkvalue==true&&piecerow==4&&piececolumn<8&&passant==1&&pawnid==piecerow+"_"+(piececolumn+1)&&availablemove.includes(document.getElementById(piecerow-1+"_"+(piececolumn+1)))){
             document.getElementById(piecerow-1+"_"+(piececolumn+1)).style.backgroundColor="lightseagreen";
         }
-        if(checkmate()!==true&&piecerow==4&&piececolumn>1&&passant==1&&pawnid==piecerow+"_"+(piececolumn-1)){
+        if(checkvalue!==true&&piecerow==4&&piececolumn>1&&passant==1&&pawnid==piecerow+"_"+(piececolumn-1)){
             document.getElementById(piecerow-1+"_"+(piececolumn-1)).style.backgroundColor="lightseagreen";
         }
-        if(checkmate()!==true&&piecerow==4&&piececolumn<8&&passant==1&&pawnid==piecerow+"_"+(piececolumn+1)){
+        if(checkvalue!==true&&piecerow==4&&piececolumn<8&&passant==1&&pawnid==piecerow+"_"+(piececolumn+1)){
             document.getElementById(piecerow-1+"_"+(piececolumn+1)).style.backgroundColor="lightseagreen";
         }
     }// bishop queen moves
     if(piece.innerText==turn+"bishop" || piece.innerText==turn+"queen"){
-        if(checkmate()!==true&&value=="*"){
+        if(checkvalue!==true&&value=="*"){
             for(let i = 1; i<=8;i++){
                 if(document.getElementById(piecerow+i+"_"+(piececolumn+i))==null){break;}
                 else if(document.getElementById(piecerow+i+"_"+(piececolumn+i)).textContent.includes(turn)){break;}
@@ -2534,7 +2530,7 @@ function showmoves(piecerow, piececolumn){
                      if(document.getElementById(piecerow-i+"_"+(piececolumn-i)).innerText!==""){break;}}
             }
         }
-        if(checkmate()!==true&&value=="upright"){
+        if(checkvalue!==true&&value=="upright"){
             for(let i = 1; i<=8;i++){
                 if(document.getElementById(piecerow+i+"_"+(piececolumn+i))==null){break;}
                 else if(document.getElementById(piecerow+i+"_"+(piececolumn+i)).textContent.includes(turn)){break;}
@@ -2548,7 +2544,7 @@ function showmoves(piecerow, piececolumn){
                      if(document.getElementById(piecerow-i+"_"+(piececolumn-i)).innerText!==""){break;}}
             }
         }
-        if(checkmate()!==true&&value=="upleft"){
+        if(checkvalue!==true&&value=="upleft"){
             for(let i = 1; i<=8;i++){
                 if(document.getElementById(piecerow-i+"_"+(piececolumn+i))==null){break;}
                 else if(document.getElementById(piecerow-i+"_"+(piececolumn+i)).textContent.includes(turn)){break;}
@@ -2562,31 +2558,35 @@ function showmoves(piecerow, piececolumn){
                      if(document.getElementById(piecerow+i+"_"+(piececolumn-i)).innerText!==""){break;}}
             }
         }
-        if(checkmate()==true&&value=="*"){
+        if(checkvalue==true&&value=="*"){
             for(let i = 1; i<=8;i++){
                 if(document.getElementById(piecerow+i+"_"+(piececolumn+i))==null){break;}
-                else if(document.getElementById(piecerow+i+"_"+(piececolumn+i)).textContent.includes(turn)){break;}
+                else if(document.getElementById(piecerow+i+"_"+(piececolumn+i)).textContent.includes(turn)||
+                document.getElementById(piecerow+i+"_"+(piececolumn+i)).innerText!=''&&!availablemove.includes(document.getElementById(piecerow+i+"_"+(piececolumn+i)))){break;}
                 else if(availablemove.includes(document.getElementById(piecerow+i+"_"+(piececolumn+i))))
                 {document.getElementById(piecerow+i+"_"+(piececolumn+i)).style.backgroundColor="lightseagreen";
                      if(document.getElementById(piecerow+i+"_"+(piececolumn+i)).innerText!==""){break;}}
             }
             for(let i = 1; i<=8;i++){
                 if(document.getElementById(piecerow-i+"_"+(piececolumn+i))==null){break;}
-                else if(document.getElementById(piecerow-i+"_"+(piececolumn+i)).textContent.includes(turn)){break;}
+                else if(document.getElementById(piecerow-i+"_"+(piececolumn+i)).textContent.includes(turn)||
+                document.getElementById(piecerow-i+"_"+(piececolumn+i)).innerText!=''&&!availablemove.includes(document.getElementById(piecerow-i+"_"+(piececolumn+i)))){break;}
                 else if(availablemove.includes(document.getElementById(piecerow-i+"_"+(piececolumn+i))))
                 {document.getElementById(piecerow-i+"_"+(piececolumn+i)).style.backgroundColor="lightseagreen";
                      if(document.getElementById(piecerow-i+"_"+(piececolumn+i)).innerText!==""){break;}}
             }
             for(let i = 1; i<=8;i++){
                 if(document.getElementById(piecerow+i+"_"+(piececolumn-i))==null){break;}
-                else if(document.getElementById(piecerow+i+"_"+(piececolumn-i)).textContent.includes(turn)){break;}
+                else if(document.getElementById(piecerow+i+"_"+(piececolumn-i)).textContent.includes(turn)||
+                document.getElementById(piecerow+i+"_"+(piececolumn-i)).innerText!=''&&!availablemove.includes(document.getElementById(piecerow+i+"_"+(piececolumn-i)))){break;}
                 else if(availablemove.includes(document.getElementById(piecerow+i+"_"+(piececolumn-i)))){
                     document.getElementById(piecerow+i+"_"+(piececolumn-i)).style.backgroundColor="lightseagreen";
                      if(document.getElementById(piecerow+i+"_"+(piececolumn-i)).innerText!==""){break;}}
             }
             for(let i = 1; i<=8;i++){
                 if(document.getElementById(piecerow-i+"_"+(piececolumn-i))==null){break;}
-                else if(document.getElementById(piecerow-i+"_"+(piececolumn-i)).textContent.includes(turn)){break;}
+                else if(document.getElementById(piecerow-i+"_"+(piececolumn-i)).textContent.includes(turn)||
+                document.getElementById(piecerow-i+"_"+(piececolumn-i)).innerText!=''&&!availablemove.includes(document.getElementById(piecerow-i+"_"+(piececolumn-i)))){break;}
                 else if(availablemove.includes(document.getElementById(piecerow-i+"_"+(piececolumn-i)))){
                     document.getElementById(piecerow-i+"_"+(piececolumn-i)).style.backgroundColor="lightseagreen";
                      if(document.getElementById(piecerow-i+"_"+(piececolumn-i)).innerText!==""){break;}}
@@ -2594,7 +2594,7 @@ function showmoves(piecerow, piececolumn){
         }
     }// rook queen moves
     if(piece.innerText==turn+"rook" || piece.innerText==turn+"queen"){
-        if(checkmate()!==true&&value=="*"){
+        if(checkvalue!==true&&value=="*"){
             for(let i = 1; i<=8;i++){
                 if(document.getElementById(piecerow+i+"_"+(piececolumn))==null){break;}
                 else if(document.getElementById(piecerow+i+"_"+(piececolumn)).textContent.includes(turn)){break;}
@@ -2620,7 +2620,7 @@ function showmoves(piecerow, piececolumn){
                      if(document.getElementById(piecerow+"_"+(piececolumn+i)).innerText!==""){break;}}
             }
         }
-        if(checkmate()!==true&&value=="up"){
+        if(checkvalue!==true&&value=="up"){
             for(let i = 1; i<=8;i++){
                 if(document.getElementById(piecerow+i+"_"+(piececolumn))==null){break;}
                 else if(document.getElementById(piecerow+i+"_"+(piececolumn)).textContent.includes(turn)){break;}
@@ -2634,7 +2634,7 @@ function showmoves(piecerow, piececolumn){
                      if(document.getElementById(piecerow-i+"_"+(piececolumn)).innerText!==""){break;}}
             }
         }
-        if(checkmate()!==true&&value=="right"){
+        if(checkvalue!==true&&value=="right"){
             for(let i = 1; i<=8;i++){
                 if(document.getElementById(piecerow+"_"+(piececolumn+i))==null){break;}
                 else if(document.getElementById(piecerow+"_"+(piececolumn+i)).textContent.includes(turn)){break;}
@@ -2648,31 +2648,35 @@ function showmoves(piecerow, piececolumn){
                      if(document.getElementById(piecerow+"_"+(piececolumn-i)).innerText!==""){break;}}
             }
         }
-        if(checkmate()==true&&value=="*"){
+        if(checkvalue==true&&value=="*"){
             for(let i = 1; i<=8;i++){
                 if(document.getElementById(piecerow+i+"_"+(piececolumn))==null){break;}
-                else if(document.getElementById(piecerow+i+"_"+(piececolumn)).textContent.includes(turn)){break;}
+                else if(document.getElementById(piecerow+i+"_"+(piececolumn)).textContent.includes(turn)||
+                document.getElementById(piecerow+i+"_"+(piececolumn)).innerText!=''&&!availablemove.includes(document.getElementById(piecerow+i+"_"+(piececolumn)))){break;}
                 else if(availablemove.includes(document.getElementById(piecerow+i+"_"+(piececolumn))))
                 {document.getElementById(piecerow+i+"_"+(piececolumn)).style.backgroundColor="lightseagreen";
                      if(document.getElementById(piecerow+i+"_"+(piececolumn)).innerText!==""){break;}}
             }
             for(let i = 1; i<=8;i++){
                 if(document.getElementById(piecerow-i+"_"+(piececolumn))==null){break;}
-                else if(document.getElementById(piecerow-i+"_"+(piececolumn)).textContent.includes(turn)){break;}
+                else if(document.getElementById(piecerow-i+"_"+(piececolumn)).textContent.includes(turn)||
+                document.getElementById(piecerow-i+"_"+(piececolumn)).innerText!=''&&!availablemove.includes(document.getElementById(piecerow-i+"_"+(piececolumn)))){break;}
                 else if(availablemove.includes(document.getElementById(piecerow-i+"_"+(piececolumn))))
                 {document.getElementById(piecerow-i+"_"+(piececolumn)).style.backgroundColor="lightseagreen";
                      if(document.getElementById(piecerow-i+"_"+(piececolumn)).innerText!==""){break;}}
             }
             for(let i = 1; i<=8;i++){
                 if(document.getElementById(piecerow+"_"+(piececolumn+i))==null){break;}
-                else if(document.getElementById(piecerow+"_"+(piececolumn+i)).textContent.includes(turn)){break;}
+                else if(document.getElementById(piecerow+"_"+(piececolumn+i)).textContent.includes(turn)||
+                document.getElementById(piecerow+"_"+(piececolumn+i)).innerText!=''&&!availablemove.includes(document.getElementById(piecerow+"_"+(piececolumn+i)))){break;}
                 else if(availablemove.includes(document.getElementById(piecerow+"_"+(piececolumn+i)))){
                     document.getElementById(piecerow+"_"+(piececolumn+i)).style.backgroundColor="lightseagreen";
                      if(document.getElementById(piecerow+"_"+(piececolumn+i)).innerText!==""){break;}}
             }
             for(let i = 1; i<=8;i++){
                 if(document.getElementById(piecerow+"_"+(piececolumn-i))==null){break;}
-                else if(document.getElementById(piecerow+"_"+(piececolumn-i)).textContent.includes(turn)){break;}
+                else if(document.getElementById(piecerow+"_"+(piececolumn-i)).textContent.includes(turn)||
+                document.getElementById(piecerow+"_"+(piececolumn-i)).innerText!=''&&!availablemove.includes(document.getElementById(piecerow+"_"+(piececolumn-i)))){break;}
                 else if(availablemove.includes(document.getElementById(piecerow+"_"+(piececolumn-i)))){
                     document.getElementById(piecerow+"_"+(piececolumn-i)).style.backgroundColor="lightseagreen";
                      if(document.getElementById(piecerow+"_"+(piececolumn-i)).innerText!==""){break;}}
@@ -2680,7 +2684,7 @@ function showmoves(piecerow, piececolumn){
         }
     } // knight moves
     if(piece.innerText==turn+"knight"){
-        if(checkmate()!==true&&value=="*"){
+        if(checkvalue!==true&&value=="*"){
             if(document.getElementById(piecerow+1+"_"+(piececolumn+2))!==null){
                 if(document.getElementById(piecerow+1+"_"+(piececolumn+2)).textContent.includes(turn)){}
                 else{document.getElementById(piecerow+1+"_"+(piececolumn+2)).style.backgroundColor="lightseagreen";}
@@ -2714,7 +2718,7 @@ function showmoves(piecerow, piececolumn){
                 else{document.getElementById(piecerow-1+"_"+(piececolumn-2)).style.backgroundColor="lightseagreen";}
             }
         }
-        if(checkmate()==true&&value=="*"){
+        if(checkvalue==true&&value=="*"){
             if(document.getElementById(piecerow+1+"_"+(piececolumn+2))!==null){
                 if(document.getElementById(piecerow+1+"_"+(piececolumn+2)).textContent.includes(turn)){}
                 else if(availablemove.includes(document.getElementById(piecerow+1+"_"+(piececolumn+2)))){
@@ -2820,7 +2824,6 @@ for(let box of boxes){
 };
 
 let drop; let dragged;
-function dragdrop(){
 for(let box of boxes){
 
     box.addEventListener("dragend", function(){
@@ -2872,13 +2875,12 @@ for(let box of boxes){
         drop = e.target.parentNode;
         }
     })
-}
 };
 
 // time function
 
 let wsecs; let bsecs;
-let timer = setInterval(function(){
+function pTimer(){
     if(turn === "W" && moves.length>=2){
         if(whiteSecs.innerText=="00"){
             if(whiteMins.innerText<=10){
@@ -2927,7 +2929,7 @@ let timer = setInterval(function(){
         clearInterval(timer);
         turntxt.innerText = "Black won"
         turntxt.style.color = "black"
-        timeoutsound.play()
+        victorySound.play()
         moves =[]
         boxes.forEach(box =>{
             box.addEventListener("mousedown", coloring)
@@ -2946,7 +2948,7 @@ let timer = setInterval(function(){
         clearInterval(timer);
         turntxt.innerText = "White won"
         turntxt.style.color = "white"
-        timeoutsound.play()
+        victorySound.play()
         moves =[]
         boxes.forEach(box =>{
             box.addEventListener("mousedown", coloring)
@@ -2955,7 +2957,8 @@ let timer = setInterval(function(){
             }
         })
     }
-},1000)
+}
+let timer = setInterval(pTimer,1000)
 
 // function to choose time 
 
@@ -2972,3 +2975,62 @@ function choosetime(min){
     }
     rightsidesection.classList.remove("displaynone")
 }
+
+// function to check winner 
+
+let win = 0;
+function checkWinner(){
+        let tempCMV = checkvalue;
+        let tempAM= availablemove;
+        for(let box of boxes){
+            if(box.innerText.includes(turn)){
+                let boxid = Array.from(box.id);
+                let boxrow = eval(boxid.shift());
+                let boxcolumn = eval(boxid.pop());
+                availablemove = tempAM;
+                checkvalue = tempCMV;
+                availablemoves(boxrow,boxcolumn);
+                showmoves(boxrow,boxcolumn);
+                if(Array.from(boxes).some((box) => box.style.backgroundColor=="lightseagreen")){
+                    win = 0;
+                    coloring();
+                    break;
+                }
+                else{win = 1;}
+            }
+        }
+        if(win==1 && checkmate()==true){
+            if(turn=="B"){
+                turntxt.innerText = "White won";
+                turntxt.style.color= "white";
+            }
+            if(turn=="W"){
+                turntxt.innerText = "Black won";
+                turntxt.style.color= "black";
+            }
+            victorySound.play();
+            clearInterval(timer);
+        }
+        if(win==1 && checkvalue!=true){
+            turntxt.innerText= "stalemate"
+            turntxt.style.color= "red";
+            turntxt.style.fontWeight= "700";
+            turntxt.style.webkitTextStroke= "1px black";
+            victorySound.play();
+            clearInterval(timer);
+        }
+}
+
+// function to check draw 
+
+function checkDraw(){
+    if(!Array.from(boxes).some(box=>box.innerText!=''&&!box.innerText.includes("king"))){
+        turntxt.innerText = "Draw game!";
+        turntxt.style.color= "darkgreen";
+        turntxt.style.fontWeight= "900";
+        turntxt.style.webkitTextStroke= "1px black";
+        win = 1;
+        victorySound.play();
+        clearInterval(timer);
+    }
+};
