@@ -416,6 +416,7 @@ movebackbtn.addEventListener("click", function(){
             if(moves[moves.length-1].length ==1){
                 attackingpiece.innerText = moves[moves.length-1][0];
                 insertimages();
+                coloring();
                 moves.pop();
             }                   
         }
@@ -466,6 +467,7 @@ movebackbtn.addEventListener("click", function(){
             if(moves[moves.length-1].length ==1){
                 oldplace.innerText = moves[moves.length-1][0];
                 insertimages();
+                coloring();
                 moves.pop();
             }
         }
@@ -2776,7 +2778,9 @@ function promotion(box){
             }
             div.addEventListener("click", function(){
                 if(div.textContent.includes("W")){
-                    box.innerText= div.innerText;
+                    if(box.innerText.includes("pawn")){
+                        box.innerText= div.innerText;
+                    }
                     promotiondiv.classList.add("displaynone");
                     insertimages();
                     checkmate();
@@ -2784,7 +2788,6 @@ function promotion(box){
                     turntxt.innerText = "Black's Turn";
                     turntxt.style.color = "black";
                     wStartTime=[whiteMins.innerText,whiteSecs.innerText]
-                    promo = false;
                 }
             })
         }
@@ -2798,7 +2801,9 @@ function promotion(box){
             }
             div.addEventListener("click", function(){
                 if(div.textContent.includes("B")){
-                    box.innerText= div.innerText;
+                    if(box.innerText.includes("pawn")){
+                        box.innerText= div.innerText;
+                    }
                     promotiondiv.classList.add("displaynone");
                     insertimages();
                     checkmate();
@@ -2806,16 +2811,16 @@ function promotion(box){
                     turntxt.innerText = "White's Turn";
                     turntxt.style.color = "white";
                     bStartTime=[blackMins.innerText,blackSecs.innerText]
-                    promo =false;
                 }
             })
         }
     }
+    promo =false;
     insertimages();
     promotiondiv.classList.remove("displaynone");
 };
 
-// drag and drop ability
+// drag and drop function
 
 for(let box of boxes){
     if(box.textContent.includes("B")){
@@ -2824,58 +2829,61 @@ for(let box of boxes){
 };
 
 let drop; let dragged;
-for(let box of boxes){
+function dragDrop(){
+    for(let box of boxes){
 
-    box.addEventListener("dragend", function(){
-        if(drop!==undefined){
-            if(drop.style.backgroundColor!=="cadetblue"&&drop.style.backgroundColor!=="darkred"){
-                coloring();
+        box.addEventListener("dragend", function(){
+            if(drop!==undefined){
+                if(drop.style.backgroundColor!=="cadetblue"&&drop.style.backgroundColor!=="darkred"){
+                    coloring();
+                }
+                else{dragged = true;}
             }
-            else{dragged = true;}
-        }
-        else{coloring()}
-    })
+            else{coloring()}
+        })
 
-    box.addEventListener("dragover", function(e){
-        e.preventDefault();
-    })
+        box.addEventListener("dragover", function(e){
+            e.preventDefault();
+        })
 
-    box.addEventListener("drop", function(e){
-        e.stopPropagation();
-        e.preventDefault();
-        if(e.target!==null && e.target.parentNode!==null){
-        if(e.target.style.backgroundColor=="lightseagreen" || e.target.parentNode.style.backgroundColor=="lightseagreen"){
-            if(e.target.parentNode.childElementCount==1){
-                capture(e.target.parentNode);
-            }
-            else{
-            move(e.target);
-            }
-            if(turn == "B"){
-                for(let box of boxes){
-                    if(box.textContent.includes("W")){
-                        box.firstChild.classList.add("nodrag");
+        box.addEventListener("drop", function(e){
+            e.stopPropagation();
+            e.preventDefault();
+            if(e.target!==null && e.target.parentNode!==null){
+            if(e.target.style.backgroundColor=="lightseagreen" || e.target.parentNode.style.backgroundColor=="lightseagreen"){
+                if(e.target.parentNode.childElementCount==1){
+                    capture(e.target.parentNode);
+                }
+                else{
+                move(e.target);
+                }
+                if(turn == "B"){
+                    for(let box of boxes){
+                        if(box.textContent.includes("W")){
+                            box.firstChild.classList.add("nodrag");
+                        }
+                        if(box.textContent.includes("B")){
+                            box.firstChild.classList.remove("nodrag");
+                        }
                     }
-                    if(box.textContent.includes("B")){
-                        box.firstChild.classList.remove("nodrag");
+                }
+                else{
+                    for(let box of boxes){
+                        if(box.textContent.includes("B")){
+                            box.firstChild.classList.add("nodrag");
+                        }
+                        if(box.textContent.includes("W")){
+                            box.firstChild.classList.remove("nodrag");
+                        }
                     }
                 }
             }
-            else{
-                for(let box of boxes){
-                    if(box.textContent.includes("B")){
-                        box.firstChild.classList.add("nodrag");
-                    }
-                    if(box.textContent.includes("W")){
-                        box.firstChild.classList.remove("nodrag");
-                    }
-                }
+            drop = e.target.parentNode;
             }
-        }
-        drop = e.target.parentNode;
-        }
-    })
+        })
+    };
 };
+dragDrop();
 
 // time function
 
