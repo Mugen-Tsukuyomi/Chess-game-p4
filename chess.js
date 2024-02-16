@@ -2782,6 +2782,7 @@ function promotion(box){
                         box.innerText= div.innerText;
                     }
                     promotiondiv.classList.add("displaynone");
+                    promo =false;
                     insertimages();
                     checkmate();
                     turn = "B";
@@ -2805,6 +2806,7 @@ function promotion(box){
                         box.innerText= div.innerText;
                     }
                     promotiondiv.classList.add("displaynone");
+                    promo =false;
                     insertimages();
                     checkmate();
                     turn = "W";
@@ -2815,7 +2817,6 @@ function promotion(box){
             })
         }
     }
-    promo =false;
     insertimages();
     promotiondiv.classList.remove("displaynone");
 };
