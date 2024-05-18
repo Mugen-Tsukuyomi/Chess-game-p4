@@ -1,4 +1,4 @@
-# Chess-game-p4
+# Chess-game
 A full chess game with all rules , time and everything
 <br>
 
