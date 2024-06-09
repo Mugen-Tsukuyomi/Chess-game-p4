@@ -2380,8 +2380,10 @@ function showmoves(piecerow, piececolumn){
             }
         }
         if(checkvalue!==true && value == "*"){
-            if(document.getElementById(piecerow+1+"_"+piececolumn).innerText==""){
-                document.getElementById(piecerow+1+"_"+piececolumn).style.backgroundColor="lightseagreen"; //move
+            if(document.getElementById(piecerow+1+"_"+piececolumn)){
+                if(document.getElementById(piecerow+1+"_"+piececolumn).innerText==""){
+                    document.getElementById(piecerow+1+"_"+piececolumn).style.backgroundColor="lightseagreen"; //move
+                }
             }
             if(document.getElementById(piecerow+1+"_"+(piececolumn-1))!==null){ //capture
                 if(document.getElementById(piecerow+1+"_"+(piececolumn-1)).textContent.includes("B")){
@@ -2456,7 +2458,9 @@ function showmoves(piecerow, piececolumn){
         }
         if(checkvalue!==true && value == "*"){
             if(document.getElementById(piecerow-1+"_"+piececolumn).innerText==""){
-                document.getElementById(piecerow-1+"_"+piececolumn).style.backgroundColor="lightseagreen"; //move
+                if(document.getElementById(piecerow-1+"_"+piececolumn).innerText==""){
+                    document.getElementById(piecerow-1+"_"+piececolumn).style.backgroundColor="lightseagreen"; //move
+                }
             }
             if(document.getElementById(piecerow-1+"_"+(piececolumn-1))!==null){ //capture
                 if(document.getElementById(piecerow-1+"_"+(piececolumn-1)).textContent.includes("W")){
@@ -2784,11 +2788,12 @@ function promotion(box){
                     promotiondiv.classList.add("displaynone");
                     promo =false;
                     insertimages();
-                    checkmate();
                     turn = "B";
                     turntxt.innerText = "Black's Turn";
                     turntxt.style.color = "black";
-                    wStartTime=[whiteMins.innerText,whiteSecs.innerText]
+                    wStartTime=[whiteMins.innerText,whiteSecs.innerText];
+                    checkmate();
+                    checkWinner();
                 }
             })
         }
@@ -2808,11 +2813,12 @@ function promotion(box){
                     promotiondiv.classList.add("displaynone");
                     promo =false;
                     insertimages();
-                    checkmate();
                     turn = "W";
                     turntxt.innerText = "White's Turn";
                     turntxt.style.color = "white";
-                    bStartTime=[blackMins.innerText,blackSecs.innerText]
+                    bStartTime=[blackMins.innerText,blackSecs.innerText];
+                    checkmate();
+                    checkWinner();
                 }
             })
         }
